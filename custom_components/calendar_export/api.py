@@ -3,6 +3,7 @@
 from datetime import datetime, timedelta
 from http import HTTPStatus
 
+import hashlib
 import pytz
 from aiohttp import web
 from homeassistant.components import http
@@ -51,7 +52,8 @@ class CalendarExportAPI(http.HomeAssistantView):
 
         for event in events:
             e = Event()
-            e.add("uid", event.uid)
+            uid = hashlib.md5((event.start.ctime() + event.end.ctime() + event.summary).encode()).hexdigest()
+            e.add("uid", event.uid or uid)
             e.add("summary", event.summary)
             e.add("dtstart", event.start)
             e.add("dtend", event.end)
