@@ -1,6 +1,6 @@
 """API for calendar export."""
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from http import HTTPStatus
 
 import pytz
@@ -54,6 +54,8 @@ class CalendarExportAPI(http.HomeAssistantView):
             e = Event()
             e.add("uid", event.uid)
             e.add("summary", event.summary)
+            # TODO: migrate to date of last edit once exposed by homeassistant
+            e.add("dtstamp", datetime(1970, 1, 1, tzinfo=UTC))
             e.add("dtstart", event.start)
             e.add("dtend", event.end)
             if event.description:
