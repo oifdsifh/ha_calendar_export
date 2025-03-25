@@ -38,6 +38,7 @@ class CalendarExportAPI(http.HomeAssistantView):
 
         # Generate ICS data
         cal = Calendar()
+        cal["VERSION"] = "2.0" # RFC5545 3.7.4
         cal["X-WR-CALNAME"] = entity.name
         cal["PRODID"] = "-//Home Assistant//Calendar Export//EN"
 
