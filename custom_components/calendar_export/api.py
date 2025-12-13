@@ -3,8 +3,8 @@
 from datetime import UTC, datetime, timedelta
 from hashlib import sha256
 from http import HTTPStatus
+from typing import Final
 
-import pytz
 from aiohttp import web
 from homeassistant.components import http
 from homeassistant.components.calendar import DOMAIN as CALENDAR_DOMAIN
@@ -15,10 +15,13 @@ from homeassistant.components.todo import (
 from homeassistant.components.todo import (
     TodoListEntity,
 )
+from homeassistant.core import HomeAssistant
+from homeassistant.util.dt import get_time_zone
 from icalendar import Calendar, Event, Todo
 
 
-def uid(*args):
+def uid(*args: bytes | str) -> str:
+    """Generate a stable hash from stable input data."""
     m = sha256()
     for arg in args:
         m.update(str(arg).encode())
@@ -31,6 +34,10 @@ class CalendarExportAPI(http.HomeAssistantView):
     url = "/api/calendars/{entity_id}/export.ics"
     name = "api:calendars:ics"
     requires_auth = False
+
+    def __init__(self, hass: HomeAssistant) -> None:
+        """Initialize calender state."""
+        self.tz: Final = get_time_zone(hass.config.time_zone)
 
     async def get(self, request: web.Request, entity_id: str):  # noqa: ANN201
         """Handle GET requests to export calendar in ICS format."""
@@ -46,16 +53,14 @@ class CalendarExportAPI(http.HomeAssistantView):
 
         # Generate ICS data
         cal = Calendar()
-        cal["VERSION"] = "2.0" # RFC5545 3.7.4
+        cal["VERSION"] = "2.0"  # RFC5545 3.7.4
         cal["X-WR-CALNAME"] = entity.name
         cal["PRODID"] = "-//Home Assistant//Calendar Export//EN"
 
-        tz = pytz.timezone(hass.config.time_zone)
-
         events = await entity.async_get_events(
             hass,
-            datetime.now(tz=tz) - timedelta(days=365),
-            datetime.now(tz=tz) + timedelta(days=365),
+            datetime.now(tz=self.tz) - timedelta(days=365),
+            datetime.now(tz=self.tz) + timedelta(days=365),
         )
 
         for event in events:
