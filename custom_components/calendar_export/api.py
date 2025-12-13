@@ -20,7 +20,8 @@ from homeassistant.util.dt import get_time_zone
 from icalendar import Calendar, Event, Todo
 
 
-def uid(*args):
+def uid(*args: bytes | str) -> str:
+    """Generate a stable hash from stable input data."""
     m = sha256()
     for arg in args:
         m.update(str(arg).encode())
