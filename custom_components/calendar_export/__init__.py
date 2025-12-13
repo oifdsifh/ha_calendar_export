@@ -9,7 +9,7 @@ DOMAIN = "calendar_export"
 
 async def async_setup(hass: HomeAssistant, _config: dict) -> bool:
     """Set up the calendar_export component."""
-    hass.http.register_view(CalendarExportAPI())
+    hass.http.register_view(CalendarExportAPI(hass))
     hass.http.register_view(TodoListExportAPI())
     hass.http.register_view(TodoListExportEventsAPI())
 
